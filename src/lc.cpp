@@ -137,10 +137,10 @@ void haloc::LoopClosure::setNode(Mat img_l, Mat img_r, string name)
   * @return true if valid loop closure, false otherwise.
   * \param Return the index of the image that closes loop (-1 if no loop).
   */
-bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name)
+bool haloc::LoopClosure::getLoopClosure(string& lc_idx)
 {
   tf::Transform trans;
-  return getLoopClosure(lc_img_idx, lc_name, trans);
+  return getLoopClosure(lc_idx, trans);
 }
 
 /** \brief Try to find a loop closure between last node and all other nodes.
@@ -149,7 +149,7 @@ bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name)
   * \param Return the name of the image that closes loop (empty if no loop).
   * \param Return the transform between nodes if loop closure is valid.
   */
-bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name, tf::Transform& trans)
+bool haloc::LoopClosure::getLoopClosure(string& lc_idx, tf::Transform& trans)
 {
   // Initialize hash
   if (!hash_.isInitialized())
@@ -181,8 +181,7 @@ bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name, tf::Tr
 
   // Check for loop closure
   trans.setIdentity();
-  lc_img_idx = -1;
-  lc_name = "";
+  lc_idx = "";
   int best_m = 0;
   int matches = 0;
   int max_matches = 0;
@@ -201,7 +200,7 @@ bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name, tf::Tr
     // Loop-closure?
     valid = compute(img_,
                     params_.work_dir+"/"+boost::lexical_cast<string>(matchings[best_m].first)+".yml",
-                    lc_name,
+                    lc_idx,
                     matches,
                     inliers,
                     trans);
@@ -257,12 +256,10 @@ bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name, tf::Tr
   // Get the image of the loop closure
   if (valid && best_m < matchings.size())
   {
-    lc_img_idx = matchings[best_m].first;
-
     // Log
     if(params_.verbose)
       ROS_INFO_STREAM("[libhaloc:] Loop closed between " <<
-                      img_.getName() << " and " << lc_name <<
+                      img_.getName() << " and " << lc_idx <<
                       " (matches: " << matches << "; inliers: " <<
                       inliers << ").");
   }
@@ -272,7 +269,7 @@ bool haloc::LoopClosure::getLoopClosure(int& lc_img_idx, string& lc_name, tf::Tr
     if(params_.verbose)
       ROS_INFO_STREAM("[libhaloc:] Max. matches/inliers found: " <<
                       max_matches << ", " << max_inliers << ".");
-    lc_name = "";
+    lc_idx = "";
   }
 
   // Return true if any valid loop closure has been found.
@@ -320,11 +317,21 @@ bool haloc::LoopClosure::getLoopClosureById(string image_id_ref,
                        inliers,
                        trans);
 
-  if(params_.verbose && valid)
-    ROS_INFO_STREAM("[libhaloc:] Loop closed by ID between " <<
-                    image_id_ref << " and " << image_id_cur <<
-                    " (matches: " << matches << "; inliers: " <<
-                    inliers << ").");
+  if(params_.verbose)
+  {
+    if (valid)
+    {
+      ROS_INFO_STREAM("[libhaloc:] Loop closed by ID between " <<
+                      image_id_ref << " and " << image_id_cur <<
+                      " (matches: " << matches << "; inliers: " <<
+                      inliers << ").");
+    }
+    else
+    {
+      ROS_INFO_STREAM("[libhaloc:] Max. matches/inliers found: " <<
+                      matches << ", " << inliers << ".");
+    }
+  }
   return valid;
 }
 
@@ -338,7 +345,7 @@ bool haloc::LoopClosure::getLoopClosureById(string image_id_ref,
   */
 bool haloc::LoopClosure::compute(Image ref_image,
                                  string cur_filename,
-                                 string &lc_name,
+                                 string &lc_idx,
                                  int &matches,
                                  int &inliers,
                                  tf::Transform& trans)
@@ -358,7 +365,7 @@ bool haloc::LoopClosure::compute(Image ref_image,
   vector<Point2f> cur_kp;
   Mat cur_desc;
   vector<Point3f> cur_3d;
-  fs["name"] >> lc_name;
+  fs["name"] >> lc_idx;
   fs["kp"] >> cur_kp;
   fs["desc"] >> cur_desc;
   fs["threed"] >> cur_3d;

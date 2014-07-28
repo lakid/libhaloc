@@ -80,10 +80,8 @@ public:
                string name);
 
   // Try to find a loop closure for the last saved node.
-  bool getLoopClosure(int& lc_img_idx,
-                      string& lc_name);
-  bool getLoopClosure(int& lc_img_idx,
-                      string& lc_name,
+  bool getLoopClosure(string& lc_idx);
+  bool getLoopClosure(string& lc_idx,
                       tf::Transform& trans);
 
   // Try to find a loop closure given 2 image identifiers
