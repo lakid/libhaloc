@@ -53,3 +53,13 @@ target_link_libraries(remote_exec_srv ${catkin_LIBRARIES})
 add_executable(evaluation
                tools/evaluation.cpp)
 target_link_libraries(evaluation haloc ${Boost_LIBRARIES} ${Eigen_LIBRARIES} ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
+
+install(TARGETS mono evaluation remote_exec_srv haloc
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
+ 
+install(DIRECTORY launch
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
